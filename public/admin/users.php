@@ -9,7 +9,7 @@ require_once __DIR__ . '/../../includes/functions.php';
 
 requireAdmin('login.php');
 
-$pageTitle = 'Manage Users';
+$pageTitle = t('manage_users');
 $pdo = db();
 
 // Handle block/unblock
@@ -23,10 +23,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($targetId && $targetId !== currentUserId()) {
         if ($action === 'block') {
             $pdo->prepare('UPDATE users SET is_blocked = 1 WHERE id = ?')->execute([$targetId]);
-            flashSet('success', 'User blocked successfully.');
+            flashSet('success', t('flash_user_blocked'));
         } elseif ($action === 'unblock') {
             $pdo->prepare('UPDATE users SET is_blocked = 0 WHERE id = ?')->execute([$targetId]);
-            flashSet('success', 'User unblocked.');
+            flashSet('success', t('flash_user_unblocked'));
         } elseif ($action === 'delete') {
             // Safety: don't delete admin accounts
             $check = $pdo->prepare('SELECT role FROM users WHERE id = ?');
@@ -34,9 +34,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $row = $check->fetch();
             if ($row && $row['role'] !== 'admin') {
                 $pdo->prepare('DELETE FROM users WHERE id = ?')->execute([$targetId]);
-                flashSet('success', 'User deleted.');
+                flashSet('success', t('flash_user_deleted'));
             } else {
-                flashSet('error', 'Cannot delete an admin account.');
+                flashSet('error', t('error_delete_admin'));
             }
         }
     }
@@ -62,17 +62,17 @@ include __DIR__ . '/../../includes/header.php';
 
 <div class="container admin-page">
     <div class="page-header">
-        <h1>Manage Users</h1>
-        <p class="page-sub"><?= count($users) ?> user(s) found.</p>
+        <h1><?= e(t('manage_users')) ?></h1>
+        <p class="page-sub"><?= count($users) ?> <?= e(t('user_s_found')) ?></p>
     </div>
 
     <!-- Search -->
     <form method="get" class="search-bar-form">
         <input type="search" name="q" class="form-input" value="<?= e($search) ?>"
-               placeholder="Search by name or email…">
-        <button type="submit" class="btn btn--primary">Search</button>
+               placeholder="<?= e(t('search_name_email')) ?>">
+        <button type="submit" class="btn btn--primary"><?= e(t('search')) ?></button>
         <?php if ($search): ?>
-        <a href="<?= e(url('admin/users.php')) ?>" class="btn btn--outline">Clear</a>
+        <a href="<?= e(url('admin/users.php')) ?>" class="btn btn--outline"><?= e(t('clear')) ?></a>
         <?php endif; ?>
     </form>
 
@@ -81,13 +81,13 @@ include __DIR__ . '/../../includes/header.php';
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Books Listed</th>
-                    <th>Joined</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th><?= e(t('name')) ?></th>
+                    <th><?= e(t('email')) ?></th>
+                    <th><?= e(t('role')) ?></th>
+                    <th><?= e(t('books_listed')) ?></th>
+                    <th><?= e(t('joined')) ?></th>
+                    <th><?= e(t('status')) ?></th>
+                    <th><?= e(t('actions')) ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -101,17 +101,19 @@ include __DIR__ . '/../../includes/header.php';
                     <td>
                         <?= e($u['name']) ?>
                         <?php if ($u['id'] === currentUserId()): ?>
-                            <span class="text-muted">(you)</span>
+                            <span class="text-muted">(<?= e(t('you')) ?>)</span>
                         <?php endif; ?>
                     </td>
                     <td><?= e($u['email']) ?></td>
-                    <td><span class="badge-role badge-role--<?= e($u['role']) ?>"><?= e(ucfirst($u['role'])) ?></span></td>
+                    <td><span class="badge-role badge-role--<?= e($u['role']) ?>"><?= e(roleLabel($u['role'])) ?></span></td>
                     <td><?= (int)$bc ?></td>
                     <td><?= date('d M Y', strtotime($u['created_at'])) ?></td>
                     <td>
-                        <?= $u['is_blocked']
-                            ? '<span class="status status--blocked">Blocked</span>'
-                            : '<span class="status status--active">Active</span>' ?>
+                        <?php if ($u['is_blocked']): ?>
+                            <span class="status status--blocked"><?= e(statusLabel('blocked')) ?></span>
+                        <?php else: ?>
+                            <span class="status status--active"><?= e(statusLabel('active')) ?></span>
+                        <?php endif; ?>
                     </td>
                     <td class="actions">
                         <?php if ($u['id'] !== currentUserId()): ?>
@@ -123,18 +125,18 @@ include __DIR__ . '/../../includes/header.php';
                                     name="action"
                                     value="unblock"
                                     class="btn btn--sm btn--primary"
-                                    data-confirm="Are you sure you want to unblock this user?"
+                                    data-confirm="<?= e(t('confirm_unblock_user')) ?>"
                                 >
-                                    Unblock
+                                    <?= e(t('unblock')) ?>
                                 </button>
                             <?php else: ?>
                                 <button
                                     name="action"
                                     value="block"
                                     class="btn btn--sm btn--warning"
-                                    data-confirm="Are you sure you want to block this user?"
+                                    data-confirm="<?= e(t('confirm_block_user')) ?>"
                                 >
-                                    Block
+                                    <?= e(t('block')) ?>
                                 </button>
                             <?php endif; ?>
                             <?php if ($u['role'] !== 'admin'): ?>
@@ -142,9 +144,9 @@ include __DIR__ . '/../../includes/header.php';
                                 name="action"
                                 value="delete"
                                 class="btn btn--sm btn--danger"
-                                data-confirm="Are you sure you want to delete this user? This action cannot be undone."
+                                data-confirm="<?= e(t('confirm_delete_user')) ?>"
                             >
-                                Delete
+                                <?= e(t('delete')) ?>
                             </button>
                             <?php endif; ?>
                         </form>

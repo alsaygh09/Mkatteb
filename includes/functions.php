@@ -179,6 +179,12 @@ function buildBookFilterParts(array $filters): array {
         $params[':book_type'] = $bookType;
     }
 
+    $bookLanguage = trim((string)($filters['book_language'] ?? $filters['language'] ?? ''));
+    if (in_array($bookLanguage, ['arabic', 'english'], true)) {
+        $where[] = 'b.book_language = :book_language';
+        $params[':book_language'] = $bookLanguage;
+    }
+
     $condition = trim((string)($filters['condition'] ?? ''));
     if ($condition === 'good') {
         $condition = 'used';
@@ -263,7 +269,7 @@ function bindBookFilterParams(PDOStatement $stmt, array $parts): void {
 function getBooks(array $filters = [], int $limit = 20, int $offset = 0): array {
     $parts = buildBookFilterParts($filters);
 
-    $sql = "SELECT b.*, c.name AS category_name, u.name AS seller_name, COALESCE(r.avg_rating, 0) AS avg_rating
+    $sql = "SELECT b.*, c.name AS category_name, c.name_ar AS category_name_ar, u.name AS seller_name, COALESCE(r.avg_rating, 0) AS avg_rating
             FROM books b
             LEFT JOIN categories c ON b.category_id = c.id
             LEFT JOIN users u ON b.seller_id = u.id
@@ -306,7 +312,7 @@ function getActiveBookMaxPrice(): float {
 /** Get a single book by ID */
 function getBook(int $id): ?array {
     $stmt = db()->prepare(
-        "SELECT b.*, c.name AS category_name, u.name AS seller_name, u.email AS seller_email
+        "SELECT b.*, c.name AS category_name, c.name_ar AS category_name_ar, u.name AS seller_name, u.email AS seller_email
          FROM books b
          LEFT JOIN categories c ON b.category_id = c.id
          LEFT JOIN users u ON b.seller_id = u.id
@@ -386,6 +392,30 @@ function getCategories(): array {
     return $stmt->fetchAll();
 }
 
+/** Return the category name that matches the selected language, with English fallback */
+function localizedCategoryName(array $category): string {
+    $name = (string)($category['name'] ?? $category['category_name'] ?? '');
+    $nameAr = trim((string)($category['name_ar'] ?? $category['category_name_ar'] ?? ''));
+
+    if (function_exists('currentLang') && currentLang() === 'ar' && $nameAr !== '') {
+        return $nameAr;
+    }
+
+    return $name;
+}
+
+/** Return the category description that matches the selected language, with English fallback */
+function localizedCategoryDescription(array $category): string {
+    $description = (string)($category['description'] ?? $category['category_description'] ?? '');
+    $descriptionAr = trim((string)($category['description_ar'] ?? $category['category_description_ar'] ?? ''));
+
+    if (function_exists('currentLang') && currentLang() === 'ar' && $descriptionAr !== '') {
+        return $descriptionAr;
+    }
+
+    return $description;
+}
+
 /** Get category by slug */
 function getCategoryBySlug(string $slug): ?array {
     $stmt = db()->prepare('SELECT * FROM categories WHERE slug = ?');
@@ -414,6 +444,56 @@ function conditionLabel(string $condition): string {
         'damaged'  => 'Damaged',
         default    => ucfirst($condition),
     };
+}
+
+/** Book type label */
+function bookTypeLabel(string $type): string {
+    $key = match($type) {
+        'official' => 'official',
+        'used' => 'used',
+        default => '',
+    };
+
+    return $key !== '' && function_exists('t') ? t($key) : ucfirst($type);
+}
+
+/** Book language label */
+function bookLanguageLabel(?string $language): string {
+    $language = trim((string)$language);
+    $key = match($language) {
+        'arabic' => 'arabic',
+        'english' => 'english',
+        default => 'english',
+    };
+
+    return function_exists('t') ? t($key) : ucfirst($key);
+}
+
+/** User role label */
+function roleLabel(string $role): string {
+    $key = match($role) {
+        'admin' => 'admin_role',
+        'user' => 'user_role',
+        default => '',
+    };
+
+    return $key !== '' && function_exists('t') ? t($key) : ucfirst($role);
+}
+
+/** Order/account status label */
+function statusLabel(string $status): string {
+    $key = match($status) {
+        'active' => 'active',
+        'hidden' => 'hidden',
+        'blocked' => 'blocked',
+        'pending' => 'pending',
+        'processing' => 'processing',
+        'completed' => 'completed',
+        'cancelled' => 'cancelled',
+        default => '',
+    };
+
+    return $key !== '' && function_exists('t') ? t($key) : ucfirst($status);
 }
 
 /** Format price in BHD */
@@ -573,7 +653,7 @@ function getCartUniqueCount(int $userId): int {
 
 function getCartItems(int $userId): array {
     $stmt = db()->prepare(
-        "SELECT ci.book_id, ci.quantity, b.*, c.name AS category_name
+        "SELECT ci.book_id, ci.quantity, b.*, c.name AS category_name, c.name_ar AS category_name_ar
          FROM cart_items ci
          JOIN books b ON b.id = ci.book_id
          LEFT JOIN categories c ON c.id = b.category_id
@@ -660,7 +740,7 @@ function getUserById(int $id): ?array {
 /** Get books listed by a specific user */
 function getUserBooks(int $userId): array {
     $stmt = db()->prepare(
-        "SELECT b.*, c.name AS category_name
+        "SELECT b.*, c.name AS category_name, c.name_ar AS category_name_ar
          FROM books b
          LEFT JOIN categories c ON b.category_id = c.id
          WHERE b.seller_id = ?

@@ -62,7 +62,7 @@ $cartCount = isLoggedIn() ? getCartUniqueCount((int)currentUserId()) : 0;
     <div class="container header-inner">
 
         <a href="<?= e(app_url('index.php')) ?>" class="logo" aria-label="<?= e($siteName) ?> <?= e(t('home')) ?>">
-            <span class="logo-icon">M</span>
+            <img src="<?= e(asset('images/logo.svg')) ?>" alt="" class="logo-mark" width="34" height="34" aria-hidden="true">
             <span class="logo-text"><?= e($siteName) ?></span>
         </a>
 

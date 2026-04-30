@@ -676,6 +676,44 @@ $translations = [
     ],
 ];
 
+$translations['en'] = array_replace($translations['en'], [
+    'english_name' => 'English Name',
+    'arabic_name' => 'Arabic Name',
+    'english_description' => 'English Description',
+    'arabic_description' => 'Arabic Description',
+    'category_english_name_placeholder' => 'e.g. Science Fiction',
+    'category_arabic_name_placeholder' => 'e.g. خيال علمي',
+    'category_english_description_placeholder' => 'Short English description',
+    'category_arabic_description_placeholder' => 'Short Arabic description',
+    'error_category_english_name_min' => 'English category name must be at least 2 characters.',
+    'error_category_arabic_name_min' => 'Arabic category name must be at least 2 characters.',
+    'no_orders_placed_yet' => 'No orders placed yet.',
+    'book_language' => 'Book Language',
+    'language' => 'Language',
+    'all_languages' => 'All Languages',
+    'arabic' => 'Arabic',
+    'english' => 'English',
+]);
+
+$translations['ar'] = array_replace($translations['ar'], [
+    'english_name' => 'الاسم بالإنجليزية',
+    'arabic_name' => 'الاسم بالعربية',
+    'english_description' => 'الوصف بالإنجليزية',
+    'arabic_description' => 'الوصف بالعربية',
+    'category_english_name_placeholder' => 'مثال: Science Fiction',
+    'category_arabic_name_placeholder' => 'مثال: خيال علمي',
+    'category_english_description_placeholder' => 'وصف إنجليزي مختصر',
+    'category_arabic_description_placeholder' => 'وصف عربي مختصر',
+    'error_category_english_name_min' => 'يجب أن يكون اسم التصنيف بالإنجليزية حرفين على الأقل.',
+    'error_category_arabic_name_min' => 'يجب أن يكون اسم التصنيف بالعربية حرفين على الأقل.',
+    'no_orders_placed_yet' => 'لا توجد طلبات بعد.',
+    'book_language' => 'لغة الكتاب',
+    'language' => 'اللغة',
+    'all_languages' => 'كل اللغات',
+    'arabic' => 'العربية',
+    'english' => 'الإنجليزية',
+]);
+
 function currentLang(): string {
     return $_SESSION['lang'] ?? 'en';
 }

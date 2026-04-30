@@ -9,7 +9,7 @@ require_once __DIR__ . '/../../includes/functions.php';
 
 requireAdmin('login.php');
 
-$pageTitle = 'Manage Books';
+$pageTitle = t('manage_books');
 $pdo = db();
 
 // Handle toggle active / delete
@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo->prepare('UPDATE books SET is_active = NOT is_active WHERE id = ?')->execute([$bookId]);
         } elseif ($action === 'delete') {
             $pdo->prepare('DELETE FROM books WHERE id = ?')->execute([$bookId]);
-            flashSet('success', 'Book deleted.');
+            flashSet('success', t('flash_book_deleted'));
         }
     }
     redirect('admin/books.php');
@@ -63,40 +63,41 @@ include __DIR__ . '/../../includes/header.php';
 
 <div class="container admin-page">
     <div class="page-header">
-        <h1>Manage Books</h1>
+        <h1><?= e(t('manage_books')) ?></h1>
         <div class="page-header__actions">
-            <a href="<?= e(url('add-book.php')) ?>" class="btn btn--primary">+ Add Official Book</a>
+            <a href="<?= e(url('add-book.php')) ?>" class="btn btn--primary">+ <?= e(t('add_official_book')) ?></a>
         </div>
     </div>
 
     <!-- Filters -->
     <form method="get" class="filter-bar">
         <input type="search" name="q" class="form-input" value="<?= e($search) ?>"
-               placeholder="Search title or author…">
+               placeholder="<?= e(t('search_title_author')) ?>">
         <select name="type" class="form-input form-select">
-            <option value="">All Types</option>
-            <option value="official" <?= $typeF === 'official' ? 'selected' : '' ?>>Official</option>
-            <option value="used"     <?= $typeF === 'used'     ? 'selected' : '' ?>>Used</option>
+            <option value=""><?= e(t('all_types_admin')) ?></option>
+            <option value="official" <?= $typeF === 'official' ? 'selected' : '' ?>><?= e(bookTypeLabel('official')) ?></option>
+            <option value="used"     <?= $typeF === 'used'     ? 'selected' : '' ?>><?= e(bookTypeLabel('used')) ?></option>
         </select>
-        <button type="submit" class="btn btn--primary">Filter</button>
-        <a href="<?= e(url('admin/books.php')) ?>" class="btn btn--outline">Clear</a>
+        <button type="submit" class="btn btn--primary"><?= e(t('filter')) ?></button>
+        <a href="<?= e(url('admin/books.php')) ?>" class="btn btn--outline"><?= e(t('clear')) ?></a>
     </form>
 
-    <p class="result-count"><?= count($books) ?> book(s) found.</p>
+    <p class="result-count"><?= count($books) ?> <?= e(t('book_s_found')) ?></p>
 
     <section class="card">
         <table class="books-table">
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>Title</th>
-                    <th>Author</th>
-                    <th>Type</th>
-                    <th>Price</th>
-                    <th>Stock</th>
-                    <th>Seller</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th><?= e(t('title')) ?></th>
+                    <th><?= e(t('author')) ?></th>
+                    <th><?= e(t('type')) ?></th>
+                    <th><?= e(t('language')) ?></th>
+                    <th><?= e(t('price')) ?></th>
+                    <th><?= e(t('stock')) ?></th>
+                    <th><?= e(t('seller')) ?></th>
+                    <th><?= e(t('status')) ?></th>
+                    <th><?= e(t('actions')) ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -109,39 +110,42 @@ include __DIR__ . '/../../includes/header.php';
                     <td><?= e($book['author']) ?></td>
                     <td>
                         <span class="book-badge book-badge--<?= e($book['book_type']) ?>">
-                            <?= e(ucfirst($book['book_type'])) ?>
+                            <?= e(bookTypeLabel($book['book_type'])) ?>
                         </span>
                     </td>
+                    <td><?= e(bookLanguageLabel($book['book_language'] ?? 'english')) ?></td>
                     <td><?= formatPrice((float)$book['price']) ?></td>
                     <td><?= (int)$book['stock'] ?></td>
                     <td><?= e($book['seller_name'] ?? '—') ?></td>
                     <td>
-                        <?= $book['is_active']
-                            ? '<span class="status status--active">Active</span>'
-                            : '<span class="status status--blocked">Hidden</span>' ?>
+                        <?php if ($book['is_active']): ?>
+                            <span class="status status--active"><?= e(statusLabel('active')) ?></span>
+                        <?php else: ?>
+                            <span class="status status--blocked"><?= e(statusLabel('hidden')) ?></span>
+                        <?php endif; ?>
                     </td>
                     <td class="actions">
                         <form method="post" class="inline-form">
                             <?= csrfField() ?>
                             <input type="hidden" name="book_id" value="<?= (int)$book['id'] ?>">
-                            <a href="<?= e(url('add-book.php?edit=' . (int)$book['id'])) ?>" class="btn btn--sm btn--outline">Edit</a>
+                            <a href="<?= e(url('add-book.php?edit=' . (int)$book['id'])) ?>" class="btn btn--sm btn--outline"><?= e(t('edit')) ?></a>
                             <button
                                 name="action"
                                 value="toggle"
                                 class="btn btn--sm btn--warning"
                                 <?php if ($book['is_active']): ?>
-                                    data-confirm="Are you sure you want to hide this book?"
+                                    data-confirm="<?= e(t('confirm_hide_book')) ?>"
                                 <?php endif; ?>
                             >
-                                <?= $book['is_active'] ? 'Hide' : 'Show' ?>
+                                <?= e($book['is_active'] ? t('hide') : t('show')) ?>
                             </button>
                             <button
                                 name="action"
                                 value="delete"
                                 class="btn btn--sm btn--danger"
-                                data-confirm="Are you sure you want to delete this book? This action cannot be undone."
+                                data-confirm="<?= e(t('confirm_delete_book')) ?>"
                             >
-                                Delete
+                                <?= e(t('delete')) ?>
                             </button>
                         </form>
                     </td>

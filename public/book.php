@@ -38,6 +38,7 @@ require __DIR__ . '/../includes/header.php';
         $bookType = $book['book_type'] ?? 'official';
         $isAvailable = !empty($book['is_active']) && (int)$book['stock'] > 0;
         $bookImages = getBookImages((int)$book['id'], $book['cover_image'] ?? null);
+        $bookCategoryName = localizedCategoryName($book);
         ?>
 
     <article class="book-detail-grid">
@@ -68,6 +69,14 @@ require __DIR__ . '/../includes/header.php';
 
                 <dt><?= e(t('type')) ?></dt>
                 <dd><?= e($bookType === 'official' ? t('official') : t('used')) ?></dd>
+
+                <dt><?= e(t('language')) ?></dt>
+                <dd><?= e(bookLanguageLabel($book['book_language'] ?? 'english')) ?></dd>
+
+                <?php if ($bookCategoryName !== ''): ?>
+                    <dt><?= e(t('category')) ?></dt>
+                    <dd><?= e($bookCategoryName) ?></dd>
+                <?php endif; ?>
 
                 <?php if ($bookType === 'used' && !empty($book['condition_type'])): ?>
                     <dt><?= e(t('condition')) ?></dt>

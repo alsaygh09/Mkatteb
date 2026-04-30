@@ -98,13 +98,6 @@ function bookCard(array $book): string {
     );
 }
 
-function homepageCategoryName(array $category): string {
-    if (currentLang() === 'ar' && !empty($category['name_ar'])) {
-        return (string)$category['name_ar'];
-    }
-
-    return (string)$category['name'];
-}
 ?>
 
 <section class="hero">
@@ -160,7 +153,7 @@ function homepageCategoryName(array $category): string {
             <?php foreach ($categories as $cat): ?>
                 <a href="<?= e(url('books.php?category=' . (int)$cat['id'])) ?>" class="category-chip">
                     <span class="category-chip__icon"><?= e($cat['icon'] ?? '') ?></span>
-                    <span class="category-chip__name"><?= e(homepageCategoryName($cat)) ?></span>
+                    <span class="category-chip__name"><?= e(localizedCategoryName($cat)) ?></span>
                 </a>
             <?php endforeach; ?>
         </div>

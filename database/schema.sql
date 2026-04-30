@@ -33,8 +33,10 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS categories (
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     name        VARCHAR(120)    NOT NULL UNIQUE,
+    name_ar     VARCHAR(120)    NULL,
     slug        VARCHAR(140)    NOT NULL UNIQUE,
     description TEXT            NULL,
+    description_ar TEXT         NULL,
     icon        VARCHAR(60)     NULL COMMENT 'Emoji or icon class',
     sort_order  INT             NOT NULL DEFAULT 0,
     created_at  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -55,6 +57,7 @@ CREATE TABLE IF NOT EXISTS books (
     condition_type  ENUM('new','like_new','used','damaged') NOT NULL DEFAULT 'new',
     book_type       ENUM('official','used') NOT NULL DEFAULT 'used'
                     COMMENT 'official = admin listed, used = user listed',
+    book_language   ENUM('arabic','english') NOT NULL DEFAULT 'english',
     cover_image     VARCHAR(255)    NULL,
     is_active       TINYINT(1)      NOT NULL DEFAULT 1,
     views           INT UNSIGNED    NOT NULL DEFAULT 0,
@@ -179,17 +182,17 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- ============================================================
 -- SEED: Default Categories
 -- ============================================================
-INSERT INTO categories (name, slug, description, icon, sort_order) VALUES
-('Arabic Books',      'arabic-books',      'Books written in Arabic language',       '📚', 1),
-('Novels',            'novels',            'Fiction and literary novels',             '📖', 2),
-('Textbooks',         'textbooks',         'Academic and school textbooks',           '🎓', 3),
-('Programming',       'programming',       'Software, coding, and tech books',        '💻', 4),
-('Business',          'business',          'Business, management and finance books',  '💼', 5),
-('Children',          'children',          'Books for children and young readers',    '🧸', 6),
-('Science',           'science',           'Science, math, and engineering books',    '🔬', 7),
-('Self-Help',         'self-help',         'Personal development and motivation',     '🌱', 8),
-('History',           'history',           'History, politics, and biographies',      '🏛️', 9),
-('Religion',          'religion',          'Islamic studies and religious books',     '🕌', 10);
+INSERT INTO categories (name, name_ar, slug, description, description_ar, icon, sort_order) VALUES
+('Arabic Books',      'كتب عربية',      'arabic-books', 'Books written in Arabic language',      'كتب مكتوبة باللغة العربية',        '📚', 1),
+('Novels',            'روايات',         'novels',       'Fiction and literary novels',            'روايات وأعمال أدبية',              '📖', 2),
+('Textbooks',         'كتب دراسية',     'textbooks',    'Academic and school textbooks',          'كتب أكاديمية ومدرسية',             '🎓', 3),
+('Programming',       'برمجة',          'programming',  'Software, coding, and tech books',       'كتب البرمجة والتقنية',             '💻', 4),
+('Business',          'أعمال',          'business',     'Business, management and finance books', 'كتب الأعمال والإدارة والمالية',     '💼', 5),
+('Children',          'أطفال',          'children',     'Books for children and young readers',   'كتب للأطفال والقراء الصغار',        '🧸', 6),
+('Science',           'علوم',           'science',      'Science, math, and engineering books',   'كتب العلوم والرياضيات والهندسة',    '🔬', 7),
+('Self-Help',         'تطوير الذات',    'self-help',    'Personal development and motivation',    'كتب تطوير الذات والتحفيز',          '🌱', 8),
+('History',           'تاريخ',          'history',      'History, politics, and biographies',     'كتب التاريخ والسياسة والسير',       '🏛️', 9),
+('Religion',          'دين',            'religion',     'Islamic studies and religious books',    'كتب الدراسات الإسلامية والدينية',   '🕌', 10);
 
 -- ============================================================
 -- SEED: Admin / Owner Account

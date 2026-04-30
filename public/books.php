@@ -24,6 +24,11 @@ if (!in_array($typeFilter, ['', 'official', 'used'], true)) {
     $typeFilter = '';
 }
 
+$languageFilter = trim($_GET['language'] ?? ($_GET['book_language'] ?? ''));
+if (!in_array($languageFilter, ['', 'arabic', 'english'], true)) {
+    $languageFilter = '';
+}
+
 $conditionFilter = trim($_GET['condition'] ?? '');
 if (!in_array($conditionFilter, ['', 'new', 'like_new', 'good', 'used', 'damaged'], true)) {
     $conditionFilter = '';
@@ -57,6 +62,7 @@ $filters = [
     'category_id' => $categoryId,
     'search' => $searchTerm,
     'book_type' => $typeFilter,
+    'book_language' => $languageFilter,
     'max_price' => $maxPriceFilter,
     'condition' => $conditionForQuery,
     'availability' => $availabilityFilter,
@@ -78,6 +84,12 @@ $typeOptions = [
     '' => t('all_types'),
     'official' => t('official_new'),
     'used' => t('used'),
+];
+
+$languageOptions = [
+    '' => t('all_languages'),
+    'arabic' => t('arabic'),
+    'english' => t('english'),
 ];
 
 $conditionOptions = [
@@ -110,7 +122,7 @@ include __DIR__ . '/../includes/header.php';
         <p class="page-sub">
             <?= (int)$totalResults ?> <?= e(t('result_s_found')) ?>
             <?php if ($selectedCategory): ?>
-                <?= e(t('in_category')) ?> <?= e($selectedCategory['name']) ?>
+                <?= e(t('in_category')) ?> <?= e(localizedCategoryName($selectedCategory)) ?>
             <?php endif; ?>
             <?php if ($searchTerm !== ''): ?>
                 <?= e(t('for_search')) ?> "<?= e($searchTerm) ?>"
@@ -132,6 +144,17 @@ include __DIR__ . '/../includes/header.php';
                 <select name="type" class="form-input form-select">
                     <?php foreach ($typeOptions as $value => $label): ?>
                         <option value="<?= e($value) ?>" <?= $typeFilter === $value ? 'selected' : '' ?>>
+                            <?= e($label) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </label>
+
+            <label class="form-group">
+                <span class="form-label"><?= e(t('language')) ?></span>
+                <select name="language" class="form-input form-select">
+                    <?php foreach ($languageOptions as $value => $label): ?>
+                        <option value="<?= e($value) ?>" <?= $languageFilter === $value ? 'selected' : '' ?>>
                             <?= e($label) ?>
                         </option>
                     <?php endforeach; ?>
@@ -207,7 +230,7 @@ include __DIR__ . '/../includes/header.php';
             <a href="<?= e(url('books.php?category=' . (int)$category['id'])) ?>"
                class="category-chip<?= (int)$category['id'] === $categoryId ? ' active' : '' ?>">
                 <span class="category-chip__icon"><?= e($category['icon'] ?? '') ?></span>
-                <span class="category-chip__name"><?= e($category['name']) ?></span>
+                <span class="category-chip__name"><?= e(localizedCategoryName($category)) ?></span>
             </a>
         <?php endforeach; ?>
     </div>

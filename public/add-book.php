@@ -50,7 +50,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['action'] ?? '', ['
     $condition = $_POST['condition_type'] ?? 'used';
     $desc = trim($_POST['description'] ?? '');
     $bookType = isAdmin() ? ($_POST['book_type'] ?? 'official') : 'used';
+    $bookLanguage = trim($_POST['book_language'] ?? 'english');
     $uploadedImages = normalizeUploadedFiles($_FILES['book_images'] ?? []);
+
+    if (!in_array($bookLanguage, ['arabic', 'english'], true)) {
+        $bookLanguage = 'english';
+    }
 
     if (strlen($title) < 2) $errors[] = t('error_title_required');
     if (strlen($author) < 2) $errors[] = t('error_author_required');
@@ -60,24 +65,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['action'] ?? '', ['
         if ($_POST['action'] === 'add') {
             $stmt = $pdo->prepare(
                 'INSERT INTO books (seller_id, category_id, title, author, description,
-                                    price, stock, condition_type, book_type, cover_image)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                                    price, stock, condition_type, book_type, book_language, cover_image)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
             );
             $stmt->execute([
                 currentUserId(), $catId, $title, $author, $desc,
-                $price, $stock, $condition, $bookType, null
+                $price, $stock, $condition, $bookType, $bookLanguage, null
             ]);
             $savedBookId = (int)$pdo->lastInsertId();
         } else {
             $savedBookId = (int)$_POST['book_id'];
             $stmt = $pdo->prepare(
                 'UPDATE books SET category_id=?, title=?, author=?, description=?,
-                                  price=?, stock=?, condition_type=?, book_type=?
+                                  price=?, stock=?, condition_type=?, book_type=?, book_language=?
                  WHERE id=?'
             );
             $stmt->execute([
                 $catId, $title, $author, $desc,
-                $price, $stock, $condition, $bookType, $savedBookId
+                $price, $stock, $condition, $bookType, $bookLanguage, $savedBookId
             ]);
         }
 
@@ -131,6 +136,17 @@ include __DIR__ . '/../includes/header.php';
             </div>
             <?php endif; ?>
 
+            <div class="form-group">
+                <label class="form-label"><?= e(t('book_language')) ?></label>
+                <select name="book_language" class="form-input form-select" required>
+                    <?php foreach (['arabic', 'english'] as $language): ?>
+                    <option value="<?= e($language) ?>" <?= ($editBook['book_language'] ?? 'english') === $language ? 'selected' : '' ?>>
+                        <?= e(bookLanguageLabel($language)) ?>
+                    </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
             <div class="form-row">
                 <div class="form-group form-group--grow">
                     <label class="form-label"><?= e(t('title')) ?> *</label>
@@ -160,7 +176,7 @@ include __DIR__ . '/../includes/header.php';
                         <option value=""><?= e(t('select_category')) ?></option>
                         <?php foreach ($categories as $cat): ?>
                         <option value="<?= (int)$cat['id'] ?>" <?= (int)($editBook['category_id'] ?? 0) === (int)$cat['id'] ? 'selected' : '' ?>>
-                            <?= e($cat['icon'] ?? '') ?> <?= e($cat['name']) ?>
+                            <?= e($cat['icon'] ?? '') ?> <?= e(localizedCategoryName($cat)) ?>
                         </option>
                         <?php endforeach; ?>
                     </select>
