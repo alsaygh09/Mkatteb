@@ -1,31 +1,41 @@
 <?php
+/**
+ * includes/db.php
+ * PDO database connection singleton.
+ * Edit the constants below to match your XAMPP setup.
+ */
 
-function getDatabaseConnection(): PDO
-{
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'mkatteb');
+define('DB_USER', 'root');
+define('DB_PASS', '');          // XAMPP default: empty password
+define('DB_CHARSET', 'utf8mb4');
+
+function db(): PDO {
     static $pdo = null;
 
-    if ($pdo instanceof PDO) {
-        return $pdo;
-    }
+    if ($pdo === null) {
+        $dsn = sprintf(
+            'mysql:host=%s;dbname=%s;charset=%s',
+            DB_HOST, DB_NAME, DB_CHARSET
+        );
 
-    $host = getenv('DB_HOST') ?: '127.0.0.1';
-    $database = getenv('DB_NAME') ?: 'mkatteb';
-    $username = getenv('DB_USER') ?: 'root';
-    $password = getenv('DB_PASS') ?: '';
-    $charset = 'utf8mb4';
+        $options = [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES   => false,
+        ];
 
-    $dsn = "mysql:host={$host};dbname={$database};charset={$charset}";
-
-    $options = [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false,
-    ];
-
-    try {
-        $pdo = new PDO($dsn, $username, $password, $options);
-    } catch (PDOException $exception) {
-        throw new RuntimeException('Unable to connect to the database.', 0, $exception);
+        try {
+            $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+        } catch (PDOException $e) {
+            // In production you'd log this; here we show clearly for dev
+            die('<div style="font-family:monospace;color:red;padding:20px;">
+                <strong>Database connection failed.</strong><br>
+                Make sure XAMPP MySQL is running and the database exists.<br>
+                Error: ' . htmlspecialchars($e->getMessage()) . '
+            </div>');
+        }
     }
 
     return $pdo;
