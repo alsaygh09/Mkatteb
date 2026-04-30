@@ -5,6 +5,7 @@
  */
 
 require_once __DIR__ . '/functions.php';
+require_once __DIR__ . '/lang.php';
 
 // Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
@@ -75,13 +76,13 @@ function registerUser(string $name, string $email, string $password): array {
 
     // Basic validation
     if (strlen($name) < 2) {
-        return ['error' => 'Name must be at least 2 characters.'];
+        return ['error' => t('error_name_min')];
     }
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        return ['error' => 'Please enter a valid email address.'];
+        return ['error' => t('error_valid_email')];
     }
     if (strlen($password) < 6) {
-        return ['error' => 'Password must be at least 6 characters.'];
+        return ['error' => t('error_password_min')];
     }
 
     $pdo = db();
@@ -90,7 +91,7 @@ function registerUser(string $name, string $email, string $password): array {
     $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ?');
     $stmt->execute([$email]);
     if ($stmt->fetch()) {
-        return ['error' => 'An account with that email already exists.'];
+        return ['error' => t('error_email_exists')];
     }
 
     // Hash password and insert
@@ -116,7 +117,7 @@ function loginUser(string $email, string $password): array {
     $password = trim($password);
 
     if (empty($email) || empty($password)) {
-        return ['error' => 'Please enter your email and password.'];
+        return ['error' => t('error_email_password_required')];
     }
 
     $pdo  = db();
@@ -125,11 +126,11 @@ function loginUser(string $email, string $password): array {
     $user = $stmt->fetch();
 
     if (!$user || !password_verify($password, $user['password'])) {
-        return ['error' => 'Invalid email or password.'];
+        return ['error' => t('error_invalid_login')];
     }
 
     if ($user['is_blocked']) {
-        return ['error' => 'Your account has been blocked. Please contact support.'];
+        return ['error' => t('error_account_blocked')];
     }
 
     // Regenerate session ID to prevent fixation
@@ -183,6 +184,6 @@ function verifyCsrf(): void {
     $token = $_POST['csrf_token'] ?? '';
     if (!hash_equals(csrfToken(), $token)) {
         http_response_code(403);
-        die('Invalid request token. Please go back and try again.');
+        die(t('error_invalid_token'));
     }
 }

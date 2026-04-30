@@ -9,7 +9,7 @@ require_once __DIR__ . '/../includes/functions.php';
 
 requireLogin('login.php');
 
-$pageTitle = 'My Cart';
+$pageTitle = t('my_cart');
 $userId = (int)currentUserId();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'add' && $bookId > 0) {
         $result = addToCart($userId, $bookId, 1);
-        flashSet(isset($result['error']) ? 'error' : 'success', $result['error'] ?? 'Book added to cart.');
+        flashSet(isset($result['error']) ? 'error' : 'success', $result['error'] ?? t('flash_book_added_cart'));
     } elseif ($action === 'update_quantity' && $bookId > 0) {
         $quantity = (int)($_POST['quantity'] ?? 1);
         $result = updateCartQuantity($userId, $bookId, $quantity);
@@ -29,10 +29,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } elseif ($action === 'remove' && $bookId > 0) {
         removeCartItem($userId, $bookId);
-        flashSet('success', 'Item removed from cart.');
+        flashSet('success', t('flash_item_removed_cart'));
     } elseif ($action === 'clear') {
         clearCart($userId);
-        flashSet('success', 'Cart cleared.');
+        flashSet('success', t('flash_cart_cleared'));
     }
 
     redirect('cart.php');
@@ -46,14 +46,14 @@ include __DIR__ . '/../includes/header.php';
 
 <div class="container">
     <div class="page-header">
-        <h1>Shopping Cart</h1>
+        <h1><?= e(t('shopping_cart')) ?></h1>
     </div>
 
     <?php if (empty($cartItems)): ?>
         <div class="empty-state">
-            <span class="empty-state__icon">Cart</span>
-            <p>Your cart is empty.</p>
-            <a href="<?= e(url('books.php')) ?>" class="btn btn--primary">Continue Browsing</a>
+            <span class="empty-state__icon"><?= e(t('cart')) ?></span>
+            <p><?= e(t('your_cart_empty')) ?></p>
+            <a href="<?= e(url('books.php')) ?>" class="btn btn--primary"><?= e(t('continue_browsing')) ?></a>
         </div>
     <?php else: ?>
         <section class="cart-layout">
@@ -71,14 +71,14 @@ include __DIR__ . '/../includes/header.php';
                         </a>
                         <div class="cart-item__body">
                             <a href="<?= e(url('book.php?id=' . (int)$item['book_id'])) ?>" class="cart-item__title"><?= e($item['title']) ?></a>
-                            <p class="cart-item__meta">by <?= e($item['author']) ?></p>
-                            <p class="cart-item__meta"><?= e(formatPrice((float)$item['price'])) ?> each - <?= $stock ?> in stock</p>
+                            <p class="cart-item__meta"><?= e(t('by_author')) ?> <?= e($item['author']) ?></p>
+                            <p class="cart-item__meta"><?= e(formatPrice((float)$item['price'])) ?> <?= e(t('unit_price')) ?> - <?= $stock ?> <?= e(t('in_stock')) ?></p>
                         </div>
                         <form method="post" action="<?= e(url('cart.php')) ?>" class="cart-item__qty js-auto-submit">
                             <?= csrfField() ?>
                             <input type="hidden" name="action" value="update_quantity">
                             <input type="hidden" name="book_id" value="<?= (int)$item['book_id'] ?>">
-                            <label class="form-label" for="qty-<?= (int)$item['book_id'] ?>">Qty</label>
+                            <label class="form-label" for="qty-<?= (int)$item['book_id'] ?>"><?= e(t('qty')) ?></label>
                             <input id="qty-<?= (int)$item['book_id'] ?>" class="form-input form-input--qty" type="number" name="quantity" min="1" max="<?= $stock ?>" value="<?= $quantity ?>">
                         </form>
                         <div class="cart-item__total"><?= e(formatPrice($lineTotal)) ?></div>
@@ -86,33 +86,33 @@ include __DIR__ . '/../includes/header.php';
                             <?= csrfField() ?>
                             <input type="hidden" name="action" value="remove">
                             <input type="hidden" name="book_id" value="<?= (int)$item['book_id'] ?>">
-                            <button type="submit" class="btn btn--sm btn--outline">Remove</button>
+                            <button type="submit" class="btn btn--sm btn--outline"><?= e(t('remove')) ?></button>
                         </form>
                     </article>
                 <?php endforeach; ?>
             </div>
 
             <aside class="cart-summary card">
-                <h2 class="card__title">Summary</h2>
+                <h2 class="card__title"><?= e(t('summary')) ?></h2>
                 <div class="summary-row">
-                    <span>Subtotal</span>
+                    <span><?= e(t('subtotal')) ?></span>
                     <strong><?= e(formatPrice($total)) ?></strong>
                 </div>
                 <div class="summary-row summary-row--total">
-                    <span>Total</span>
+                    <span><?= e(t('total')) ?></span>
                     <strong><?= e(formatPrice($total)) ?></strong>
                 </div>
-                <p class="form-hint">Payment method: Cash on Delivery.</p>
-                <a href="<?= e(url('checkout.php')) ?>" class="btn btn--primary btn--full">Checkout</a>
+                <p class="form-hint"><?= e(t('payment_method_cash_on_delivery')) ?></p>
+                <a href="<?= e(url('checkout.php')) ?>" class="btn btn--primary btn--full"><?= e(t('checkout')) ?></a>
                 <form method="post" action="<?= e(url('cart.php')) ?>">
                     <?= csrfField() ?>
                     <input type="hidden" name="action" value="clear">
                     <button
                         type="submit"
                         class="btn btn--outline btn--full"
-                        data-confirm="Are you sure you want to clear your cart?"
+                        data-confirm="<?= e(t('confirm_clear_cart')) ?>"
                     >
-                        Clear Cart
+                        <?= e(t('clear_cart')) ?>
                     </button>
                 </form>
             </aside>

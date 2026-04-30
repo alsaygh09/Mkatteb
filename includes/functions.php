@@ -80,7 +80,7 @@ function ensureUploadDir(string $path = ''): string {
     $dir = uploadPath($path);
 
     if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
-        throw new RuntimeException('Failed to create uploads directory.');
+        throw new RuntimeException(function_exists('t') ? t('error_upload_dir') : 'Failed to create uploads directory.');
     }
 
     return $dir;
@@ -395,6 +395,18 @@ function getCategoryBySlug(string $slug): ?array {
 
 /** Condition label */
 function conditionLabel(string $condition): string {
+    $key = match($condition) {
+        'new'      => 'condition_new',
+        'like_new' => 'condition_like_new',
+        'used'     => 'condition_used',
+        'damaged'  => 'condition_damaged',
+        default    => '',
+    };
+
+    if ($key !== '' && function_exists('t')) {
+        return t($key);
+    }
+
     return match($condition) {
         'new'      => 'New',
         'like_new' => 'Like New',
@@ -427,14 +439,15 @@ function bookCoverUrl(?string $cover, string $title = 'No cover'): string {
     }
 
     $label = function_exists('mb_substr') ? mb_substr($title, 0, 10) : substr($title, 0, 10);
-    $label = trim($label) !== '' ? $label : 'No cover';
+    $fallbackLabel = function_exists('t') ? t('no_cover') : 'No cover';
+    $label = trim($label) !== '' ? $label : $fallbackLabel;
 
     return 'https://placehold.co/160x220/e8dcc8/7a6652?text=' . rawurlencode($label);
 }
 
 /** Book cover URL from a full book row */
 function bookCoverUrlFromBook(array $book): string {
-    return bookCoverUrl(getPrimaryBookImagePath($book), (string)($book['title'] ?? 'No cover'));
+    return bookCoverUrl(getPrimaryBookImagePath($book), (string)($book['title'] ?? (function_exists('t') ? t('no_cover') : 'No cover')));
 }
 
 /** Normalize a multi-file upload field into a simple file list */
@@ -481,7 +494,7 @@ function saveBookImages(int $bookId, array $files, int $maxImages = 5): array {
     $existingCount = (int)$countStmt->fetchColumn();
 
     if ($existingCount + count($files) > $maxImages) {
-        $errors[] = 'You can upload up to ' . $maxImages . ' images per book.';
+        $errors[] = function_exists('t') ? sprintf(t('error_upload_limit'), $maxImages) : 'You can upload up to ' . $maxImages . ' images per book.';
         return ['errors' => $errors, 'saved' => $saved];
     }
 
@@ -490,18 +503,20 @@ function saveBookImages(int $bookId, array $files, int $maxImages = 5): array {
 
     foreach ($files as $file) {
         if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
-            $errors[] = 'One image could not be uploaded. Please try again.';
+            $errors[] = function_exists('t') ? t('error_upload_failed') : 'One image could not be uploaded. Please try again.';
             continue;
         }
 
         if (($file['size'] ?? 0) > $maxSize) {
-            $errors[] = basename($file['name']) . ' is larger than 3MB.';
+            $filenameForMessage = basename($file['name']);
+            $errors[] = function_exists('t') ? sprintf(t('error_file_too_large'), $filenameForMessage) : $filenameForMessage . ' is larger than 3MB.';
             continue;
         }
 
         $mime = $finfo->file($file['tmp_name']);
         if (!isset($allowedMimeTypes[$mime])) {
-            $errors[] = basename($file['name']) . ' must be a JPG, PNG, or WebP image.';
+            $filenameForMessage = basename($file['name']);
+            $errors[] = function_exists('t') ? sprintf(t('error_invalid_image_type'), $filenameForMessage) : $filenameForMessage . ' must be a JPG, PNG, or WebP image.';
             continue;
         }
 
@@ -510,7 +525,8 @@ function saveBookImages(int $bookId, array $files, int $maxImages = 5): array {
         $destination = $uploadDir . DIRECTORY_SEPARATOR . $filename;
 
         if (!move_uploaded_file($file['tmp_name'], $destination)) {
-            $errors[] = 'Failed to save ' . basename($file['name']) . '.';
+            $filenameForMessage = basename($file['name']);
+            $errors[] = function_exists('t') ? sprintf(t('error_file_save_failed'), $filenameForMessage) : 'Failed to save ' . $filenameForMessage . '.';
             continue;
         }
 
@@ -571,12 +587,12 @@ function getCartItems(int $userId): array {
 function addToCart(int $userId, int $bookId, int $quantity = 1): array {
     $book = getBook($bookId);
     if (!$book || empty($book['is_active'])) {
-        return ['error' => 'This book is not available.'];
+        return ['error' => function_exists('t') ? t('error_book_not_available') : 'This book is not available.'];
     }
 
     $stock = (int)$book['stock'];
     if ($stock < 1) {
-        return ['error' => 'This book is out of stock.'];
+        return ['error' => function_exists('t') ? t('error_book_out_stock') : 'This book is out of stock.'];
     }
 
     $quantity = max(1, min($quantity, $stock));
@@ -605,13 +621,13 @@ function updateCartQuantity(int $userId, int $bookId, int $quantity): array {
     $book = getBook($bookId);
     if (!$book || empty($book['is_active'])) {
         removeCartItem($userId, $bookId);
-        return ['error' => 'That book is no longer available and was removed from your cart.'];
+        return ['error' => function_exists('t') ? t('error_book_not_available') : 'That book is no longer available and was removed from your cart.'];
     }
 
     $quantity = min($quantity, (int)$book['stock']);
     if ($quantity < 1) {
         removeCartItem($userId, $bookId);
-        return ['error' => 'That book is out of stock and was removed from your cart.'];
+        return ['error' => function_exists('t') ? t('error_cart_item_out_stock_removed') : 'That book is out of stock and was removed from your cart.'];
     }
 
     $stmt = db()->prepare('UPDATE cart_items SET quantity = ? WHERE user_id = ? AND book_id = ?');

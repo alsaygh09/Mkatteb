@@ -11,17 +11,17 @@ $siteName = $siteName ?? 'Mkatteb';
         <div class="footer-brand">
             <span class="logo-icon">📚</span>
             <span class="logo-text"><?= e($siteName) ?></span>
-            <p class="footer-tagline">Your local bookstore &amp; used-book marketplace.</p>
+            <p class="footer-tagline"><?= e(t('footer_tagline')) ?></p>
         </div>
         <nav class="footer-nav" aria-label="Footer navigation">
             <ul>
-                <li><a href="<?= e(url('index.php')) ?>">Home</a></li>
-                <li><a href="<?= e(url('books.php')) ?>">Browse Books</a></li>
-                <li><a href="<?= e(url('books.php?type=official')) ?>">Official Store</a></li>
-                <li><a href="<?= e(url('books.php?type=used')) ?>">Used Books</a></li>
+                <li><a href="<?= e(url('index.php')) ?>"><?= e(t('home')) ?></a></li>
+                <li><a href="<?= e(url('books.php')) ?>"><?= e(t('browse_books')) ?></a></li>
+                <li><a href="<?= e(url('books.php?type=official')) ?>"><?= e(t('official_store')) ?></a></li>
+                <li><a href="<?= e(url('books.php?type=used')) ?>"><?= e(t('used_books')) ?></a></li>
             </ul>
         </nav>
-        <p class="footer-copy">&copy; <?= date('Y') ?> <?= e($siteName) ?>. All rights reserved.</p>
+        <p class="footer-copy">&copy; <?= date('Y') ?> <?= e($siteName) ?>. <?= e(t('all_rights_reserved')) ?></p>
     </div>
 </footer>
 

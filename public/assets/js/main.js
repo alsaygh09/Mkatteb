@@ -133,6 +133,7 @@
         var outputSelector = slider.getAttribute('data-output');
         var output = outputSelector ? document.querySelector(outputSelector) : null;
         var currency = slider.getAttribute('data-currency') || 'BD';
+        var prefix = slider.getAttribute('data-prefix') || ('Up to ' + currency);
 
         function updatePriceOutput() {
             if (!output) return;
@@ -142,7 +143,7 @@
                 value = 0;
             }
 
-            output.textContent = 'Up to ' + currency + ' ' + value.toFixed(3);
+            output.textContent = prefix + ' ' + value.toFixed(3);
         }
 
         slider.addEventListener('input', updatePriceOutput);

@@ -7,7 +7,7 @@
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 
-$pageTitle = 'Browse Books';
+$pageTitle = t('browse_books');
 $categories = getCategories();
 
 $categoryId = filter_input(INPUT_GET, 'category', FILTER_VALIDATE_INT, [
@@ -75,30 +75,30 @@ foreach ($categories as $category) {
 }
 
 $typeOptions = [
-    '' => 'All types',
-    'official' => 'Official / New',
-    'used' => 'Used',
+    '' => t('all_types'),
+    'official' => t('official_new'),
+    'used' => t('used'),
 ];
 
 $conditionOptions = [
-    '' => 'All conditions',
-    'new' => 'New',
-    'like_new' => 'Like New',
-    'good' => 'Good / Used',
-    'damaged' => 'Damaged',
+    '' => t('all_conditions'),
+    'new' => t('condition_new'),
+    'like_new' => t('condition_like_new'),
+    'good' => t('condition_good_used'),
+    'damaged' => t('condition_damaged'),
 ];
 
 $availabilityOptions = [
-    '' => 'Any availability',
-    'in_stock' => 'In Stock',
-    'out_of_stock' => 'Sold Out',
+    '' => t('any_availability'),
+    'in_stock' => t('in_stock'),
+    'out_of_stock' => t('sold_out'),
 ];
 
 $sortOptions = [
-    'newest' => 'Newest',
-    'price_asc' => 'Price Low to High',
-    'price_desc' => 'Price High to Low',
-    'title_az' => 'Title A-Z',
+    'newest' => t('newest'),
+    'price_asc' => t('price_low_high'),
+    'price_desc' => t('price_high_low'),
+    'title_az' => t('title_az'),
 ];
 
 include __DIR__ . '/../includes/header.php';
@@ -106,14 +106,14 @@ include __DIR__ . '/../includes/header.php';
 
 <div class="container">
     <div class="page-header">
-        <h1>Browse Books</h1>
+        <h1><?= e(t('browse_books')) ?></h1>
         <p class="page-sub">
-            <?= (int)$totalResults ?> result(s) found
+            <?= (int)$totalResults ?> <?= e(t('result_s_found')) ?>
             <?php if ($selectedCategory): ?>
-                in <?= e($selectedCategory['name']) ?>
+                <?= e(t('in_category')) ?> <?= e($selectedCategory['name']) ?>
             <?php endif; ?>
             <?php if ($searchTerm !== ''): ?>
-                for "<?= e($searchTerm) ?>"
+                <?= e(t('for_search')) ?> "<?= e($searchTerm) ?>"
             <?php endif; ?>
         </p>
     </div>
@@ -121,14 +121,14 @@ include __DIR__ . '/../includes/header.php';
     <form action="<?= e(url('books.php')) ?>" method="get" class="book-filter-panel">
         <div class="book-filter-grid">
             <label class="form-group book-filter-field book-filter-field--wide">
-                <span class="form-label">Search</span>
-                <input type="search" name="search" class="form-input" value="<?= e($searchTerm) ?>" placeholder="Title or author">
+                <span class="form-label"><?= e(t('search')) ?></span>
+                <input type="search" name="search" class="form-input" value="<?= e($searchTerm) ?>" placeholder="<?= e(t('search_title_author')) ?>">
             </label>
 
             <input type="hidden" name="category" value="<?= (int)$categoryId ?>">
 
             <label class="form-group">
-                <span class="form-label">Book Type</span>
+                <span class="form-label"><?= e(t('book_type')) ?></span>
                 <select name="type" class="form-input form-select">
                     <?php foreach ($typeOptions as $value => $label): ?>
                         <option value="<?= e($value) ?>" <?= $typeFilter === $value ? 'selected' : '' ?>>
@@ -139,7 +139,7 @@ include __DIR__ . '/../includes/header.php';
             </label>
 
             <label class="form-group">
-                <span class="form-label">Condition</span>
+                <span class="form-label"><?= e(t('condition')) ?></span>
                 <select name="condition" class="form-input form-select">
                     <?php foreach ($conditionOptions as $value => $label): ?>
                         <?php $isSelected = $conditionFilter === $value || ($value === 'good' && $conditionFilter === 'used'); ?>
@@ -151,7 +151,7 @@ include __DIR__ . '/../includes/header.php';
             </label>
 
             <label class="form-group">
-                <span class="form-label">Availability</span>
+                <span class="form-label"><?= e(t('availability')) ?></span>
                 <select name="availability" class="form-input form-select">
                     <?php foreach ($availabilityOptions as $value => $label): ?>
                         <option value="<?= e($value) ?>" <?= $availabilityFilter === $value ? 'selected' : '' ?>>
@@ -162,7 +162,7 @@ include __DIR__ . '/../includes/header.php';
             </label>
 
             <label class="form-group">
-                <span class="form-label">Sort By</span>
+                <span class="form-label"><?= e(t('sort_by')) ?></span>
                 <select name="sort" class="form-input form-select">
                     <?php foreach ($sortOptions as $value => $label): ?>
                         <option value="<?= e($value) ?>" <?= $sortFilter === $value ? 'selected' : '' ?>>
@@ -174,9 +174,9 @@ include __DIR__ . '/../includes/header.php';
 
             <div class="form-group book-filter-price">
                 <div class="price-filter-head">
-                    <label for="maxPrice" class="form-label">Max Price</label>
+                    <label for="maxPrice" class="form-label"><?= e(t('max_price')) ?></label>
                     <span id="maxPriceOutput" class="price-range-value" data-price-output>
-                        Up to BD <?= e(number_format((float)$sliderValue, 3)) ?>
+                        <?= e(t('up_to_price')) ?> <?= e(number_format((float)$sliderValue, 3)) ?>
                     </span>
                 </div>
                 <input
@@ -191,13 +191,14 @@ include __DIR__ . '/../includes/header.php';
                     data-price-slider
                     data-output="#maxPriceOutput"
                     data-currency="BD"
+                    data-prefix="<?= e(t('up_to_price')) ?>"
                 >
             </div>
         </div>
 
         <div class="book-filter-actions">
-            <button type="submit" class="btn btn--primary">Apply Filters</button>
-            <a href="<?= e(url('books.php')) ?>" class="btn btn--outline">Clear Filters</a>
+            <button type="submit" class="btn btn--primary"><?= e(t('apply_filters')) ?></button>
+            <a href="<?= e(url('books.php')) ?>" class="btn btn--outline"><?= e(t('clear_filters')) ?></a>
         </div>
     </form>
 
@@ -213,8 +214,8 @@ include __DIR__ . '/../includes/header.php';
 
     <?php if (empty($books)): ?>
         <div class="empty-state">
-            <p>No books match your filters.</p>
-            <a href="<?= e(url('books.php')) ?>" class="btn btn--primary">View All Books</a>
+            <p><?= e(t('no_books_match_filters')) ?></p>
+            <a href="<?= e(url('books.php')) ?>" class="btn btn--primary"><?= e(t('view_all_books')) ?></a>
         </div>
     <?php else: ?>
         <div class="books-grid">
@@ -226,7 +227,7 @@ include __DIR__ . '/../includes/header.php';
                 <a href="<?= e($bookUrl) ?>" class="book-card__cover-link">
                     <img src="<?= e($cover) ?>" alt="<?= e($book['title']) ?>" class="book-card__cover" loading="lazy">
                     <span class="book-badge book-badge--<?= e($book['book_type']) ?>">
-                        <?= $book['book_type'] === 'official' ? 'Official' : 'Used' ?>
+                        <?= e($book['book_type'] === 'official' ? t('official') : t('used')) ?>
                     </span>
                 </a>
                 <div class="book-card__body">
@@ -234,7 +235,7 @@ include __DIR__ . '/../includes/header.php';
                     <p class="book-card__author"><?= e($book['author']) ?></p>
                     <div class="book-card__footer">
                         <span class="book-card__price"><?= formatPrice((float)$book['price']) ?></span>
-                        <a href="<?= e($bookUrl) ?>" class="btn btn--primary btn--sm">View</a>
+                        <a href="<?= e($bookUrl) ?>" class="btn btn--primary btn--sm"><?= e(t('view')) ?></a>
                     </div>
                 </div>
             </article>

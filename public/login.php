@@ -8,7 +8,7 @@ require_once __DIR__ . '/../includes/functions.php';
 
 requireGuest('account.php');
 
-$pageTitle = 'Login';
+$pageTitle = t('login');
 $error     = '';
 $email     = '';
 
@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($result['error'])) {
         $error = $result['error'];
     } else {
-        flashSet('success', 'Welcome back!');
+        flashSet('success', t('welcome_back_flash'));
         // Redirect admins to dashboard
         if ($result['role'] === 'admin') {
             redirect('admin/dashboard.php');
@@ -38,8 +38,8 @@ include __DIR__ . '/../includes/header.php';
 <div class="auth-page">
     <div class="auth-card">
         <div class="auth-card__header">
-            <h1 class="auth-card__title">Welcome Back</h1>
-            <p class="auth-card__sub">Log in to your Mkatteb account.</p>
+            <h1 class="auth-card__title"><?= e(t('welcome_back')) ?></h1>
+            <p class="auth-card__sub"><?= e(t('login_subtitle')) ?></p>
         </div>
 
         <?php if ($error): ?>
@@ -50,23 +50,23 @@ include __DIR__ . '/../includes/header.php';
             <?= csrfField() ?>
 
             <div class="form-group">
-                <label for="email" class="form-label">Email Address</label>
+                <label for="email" class="form-label"><?= e(t('email_address')) ?></label>
                 <input type="email" id="email" name="email" class="form-input"
                        value="<?= e($email) ?>" required
                        placeholder="you@example.com" autocomplete="email">
             </div>
 
             <div class="form-group">
-                <label for="password" class="form-label">Password</label>
+                <label for="password" class="form-label"><?= e(t('password')) ?></label>
                 <input type="password" id="password" name="password" class="form-input"
-                       required placeholder="Your password" autocomplete="current-password">
+                       required placeholder="<?= e(t('your_password')) ?>" autocomplete="current-password">
             </div>
 
-            <button type="submit" class="btn btn--primary btn--full">Log In</button>
+            <button type="submit" class="btn btn--primary btn--full"><?= e(t('log_in')) ?></button>
         </form>
 
         <p class="auth-card__footer">
-            Don't have an account? <a href="<?= e(url('register.php')) ?>">Create one</a>
+            <?= e(t('dont_have_account')) ?> <a href="<?= e(url('register.php')) ?>"><?= e(t('create_one')) ?></a>
         </p>
     </div>
 </div>

@@ -1,9 +1,7 @@
 <?php
 /**
  * public/add-book.php
- * List or edit a used book (for regular users).
- * Admin can also add official books here.
- * Full implementation in Phase 3 — basic form provided now.
+ * List or edit a used book. Admins can add official books.
  */
 
 require_once __DIR__ . '/../includes/auth.php';
@@ -11,57 +9,52 @@ require_once __DIR__ . '/../includes/functions.php';
 
 requireLogin('login.php');
 
-$pageTitle  = 'Add a Book';
+$pageTitle  = t('add_book');
 $categories = getCategories();
 $errors     = [];
 $pdo        = db();
 
-// Edit mode
-$editBook   = null;
-$editId     = (int)($_GET['edit'] ?? 0);
+$editBook = null;
+$editId = (int)($_GET['edit'] ?? 0);
 if ($editId) {
     $editBook = getBook($editId);
-    // Only admin or the owner can edit
-    if (!$editBook || ($editBook['seller_id'] !== currentUserId() && !isAdmin())) {
-        flashSet('error', 'You do not have permission to edit this book.');
+    if (!$editBook || ((int)$editBook['seller_id'] !== (int)currentUserId() && !isAdmin())) {
+        flashSet('error', t('error_no_permission_edit_book'));
         redirect('account.php');
     }
     syncLegacyBookImage((int)$editBook['id'], $editBook['cover_image'] ?? null);
-    $pageTitle = 'Edit Book';
+    $pageTitle = t('edit_book');
 }
 
 $bookImages = $editBook ? getBookImages((int)$editBook['id'], $editBook['cover_image'] ?? null) : [];
 
-// Handle delete
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete') {
     verifyCsrf();
     $delId = (int)($_POST['book_id'] ?? 0);
     $check = getBook($delId);
-    if ($check && ($check['seller_id'] === currentUserId() || isAdmin())) {
+    if ($check && ((int)$check['seller_id'] === (int)currentUserId() || isAdmin())) {
         $pdo->prepare('DELETE FROM books WHERE id = ?')->execute([$delId]);
-        flashSet('success', 'Book listing deleted.');
+        flashSet('success', t('flash_book_listing_deleted'));
         redirect(isAdmin() ? 'admin/books.php' : 'account.php');
     }
 }
 
-// Handle save
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['action'] ?? '', ['add', 'edit'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['action'] ?? '', ['add', 'edit'], true)) {
     verifyCsrf();
 
-    $title     = trim($_POST['title']       ?? '');
-    $author    = trim($_POST['author']      ?? '');
-    $price     = (float)($_POST['price']    ?? 0);
-    $stock     = (int)($_POST['stock']      ?? 1);
-    $catId     = (int)($_POST['category_id']?? 0) ?: null;
-    $condition = $_POST['condition_type']   ?? 'used';
-    $desc      = trim($_POST['description'] ?? '');
-    $bookType  = isAdmin() ? ($_POST['book_type'] ?? 'official') : 'used';
+    $title = trim($_POST['title'] ?? '');
+    $author = trim($_POST['author'] ?? '');
+    $price = (float)($_POST['price'] ?? 0);
+    $stock = (int)($_POST['stock'] ?? 1);
+    $catId = (int)($_POST['category_id'] ?? 0) ?: null;
+    $condition = $_POST['condition_type'] ?? 'used';
+    $desc = trim($_POST['description'] ?? '');
+    $bookType = isAdmin() ? ($_POST['book_type'] ?? 'official') : 'used';
     $uploadedImages = normalizeUploadedFiles($_FILES['book_images'] ?? []);
 
-    // Validation
-    if (strlen($title) < 2)  $errors[] = 'Title is required.';
-    if (strlen($author) < 2) $errors[] = 'Author is required.';
-    if ($price <= 0)         $errors[] = 'Price must be greater than zero.';
+    if (strlen($title) < 2) $errors[] = t('error_title_required');
+    if (strlen($author) < 2) $errors[] = t('error_author_required');
+    if ($price <= 0) $errors[] = t('error_price_positive');
 
     if (empty($errors)) {
         if ($_POST['action'] === 'add') {
@@ -96,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['action'] ?? '', ['
         if (!empty($imageResult['errors'])) {
             flashSet('error', implode(' ', $imageResult['errors']));
         } else {
-            flashSet('success', $_POST['action'] === 'add' ? 'Book listed successfully!' : 'Book updated.');
+            flashSet('success', $_POST['action'] === 'add' ? t('flash_book_listed') : t('flash_book_updated'));
         }
 
         redirect(isAdmin() ? 'admin/books.php' : 'account.php');
@@ -108,9 +101,9 @@ include __DIR__ . '/../includes/header.php';
 
 <div class="container">
     <div class="page-header">
-        <h1><?= $editBook ? 'Edit Book Listing' : 'List a Book for Sale' ?></h1>
+        <h1><?= e($editBook ? t('edit_book_listing') : t('list_book_for_sale')) ?></h1>
         <?php if (!isAdmin()): ?>
-        <p class="page-sub">You can only list used books. Admin adds official store books.</p>
+        <p class="page-sub"><?= e(t('used_books_only_notice')) ?></p>
         <?php endif; ?>
     </div>
 
@@ -128,64 +121,56 @@ include __DIR__ . '/../includes/header.php';
             <input type="hidden" name="book_id" value="<?= (int)$editBook['id'] ?>">
             <?php endif; ?>
 
-            <!-- Admin-only: book type -->
             <?php if (isAdmin()): ?>
             <div class="form-group">
-                <label class="form-label">Book Type</label>
+                <label class="form-label"><?= e(t('book_type')) ?></label>
                 <select name="book_type" class="form-input form-select">
-                    <option value="official" <?= ($editBook['book_type'] ?? '') === 'official' ? 'selected' : '' ?>>🏪 Official Store Book</option>
-                    <option value="used"     <?= ($editBook['book_type'] ?? '') === 'used'     ? 'selected' : '' ?>>♻️ Used Book</option>
+                    <option value="official" <?= ($editBook['book_type'] ?? '') === 'official' ? 'selected' : '' ?>><?= e(t('official_store_book')) ?></option>
+                    <option value="used" <?= ($editBook['book_type'] ?? '') === 'used' ? 'selected' : '' ?>><?= e(t('used_book')) ?></option>
                 </select>
             </div>
             <?php endif; ?>
 
             <div class="form-row">
                 <div class="form-group form-group--grow">
-                    <label class="form-label">Title *</label>
-                    <input type="text" name="title" class="form-input" required
-                           value="<?= e($editBook['title'] ?? '') ?>" placeholder="Book title">
+                    <label class="form-label"><?= e(t('title')) ?> *</label>
+                    <input type="text" name="title" class="form-input" required value="<?= e($editBook['title'] ?? '') ?>" placeholder="<?= e(t('title')) ?>">
                 </div>
                 <div class="form-group form-group--grow">
-                    <label class="form-label">Author *</label>
-                    <input type="text" name="author" class="form-input" required
-                           value="<?= e($editBook['author'] ?? '') ?>" placeholder="Author name">
+                    <label class="form-label"><?= e(t('author')) ?> *</label>
+                    <input type="text" name="author" class="form-input" required value="<?= e($editBook['author'] ?? '') ?>" placeholder="<?= e(t('author')) ?>">
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group form-group--grow">
-                    <label class="form-label">Price (BD) *</label>
-                    <input type="number" name="price" class="form-input" required
-                           min="0.001" step="0.001"
-                           value="<?= number_format((float)($editBook['price'] ?? 0), 3) ?>">
+                    <label class="form-label"><?= e(t('price_bd')) ?> *</label>
+                    <input type="number" name="price" class="form-input" required min="0.001" step="0.001" value="<?= number_format((float)($editBook['price'] ?? 0), 3) ?>">
                 </div>
                 <div class="form-group form-group--grow">
-                    <label class="form-label">Stock / Quantity</label>
-                    <input type="number" name="stock" class="form-input" min="0"
-                           value="<?= (int)($editBook['stock'] ?? 1) ?>">
+                    <label class="form-label"><?= e(t('stock_quantity')) ?></label>
+                    <input type="number" name="stock" class="form-input" min="0" value="<?= (int)($editBook['stock'] ?? 1) ?>">
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group form-group--grow">
-                    <label class="form-label">Category</label>
+                    <label class="form-label"><?= e(t('category')) ?></label>
                     <select name="category_id" class="form-input form-select">
-                        <option value="">— Select category —</option>
+                        <option value=""><?= e(t('select_category')) ?></option>
                         <?php foreach ($categories as $cat): ?>
-                        <option value="<?= (int)$cat['id'] ?>"
-                            <?= (int)($editBook['category_id'] ?? 0) === (int)$cat['id'] ? 'selected' : '' ?>>
+                        <option value="<?= (int)$cat['id'] ?>" <?= (int)($editBook['category_id'] ?? 0) === (int)$cat['id'] ? 'selected' : '' ?>>
                             <?= e($cat['icon'] ?? '') ?> <?= e($cat['name']) ?>
                         </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
                 <div class="form-group form-group--grow">
-                    <label class="form-label">Condition</label>
+                    <label class="form-label"><?= e(t('condition')) ?></label>
                     <select name="condition_type" class="form-input form-select">
-                        <?php foreach (['new' => 'New', 'like_new' => 'Like New', 'used' => 'Used', 'damaged' => 'Damaged'] as $val => $lbl): ?>
-                        <option value="<?= $val ?>"
-                            <?= ($editBook['condition_type'] ?? 'used') === $val ? 'selected' : '' ?>>
-                            <?= $lbl ?>
+                        <?php foreach (['new' => t('condition_new'), 'like_new' => t('condition_like_new'), 'used' => t('condition_used'), 'damaged' => t('condition_damaged')] as $val => $lbl): ?>
+                        <option value="<?= e($val) ?>" <?= ($editBook['condition_type'] ?? 'used') === $val ? 'selected' : '' ?>>
+                            <?= e($lbl) ?>
                         </option>
                         <?php endforeach; ?>
                     </select>
@@ -193,49 +178,41 @@ include __DIR__ . '/../includes/header.php';
             </div>
 
             <div class="form-group">
-                <label class="form-label">Description</label>
-                <textarea name="description" class="form-input" rows="4"
-                          placeholder="Short description of the book…"><?= e($editBook['description'] ?? '') ?></textarea>
+                <label class="form-label"><?= e(t('description')) ?></label>
+                <textarea name="description" class="form-input" rows="4" placeholder="<?= e(t('short_description_book')) ?>"><?= e($editBook['description'] ?? '') ?></textarea>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Book Photos</label>
+                <label class="form-label"><?= e(t('book_photos')) ?></label>
                 <?php if (!empty($bookImages)): ?>
                 <div class="image-preview-grid current-cover">
                     <?php foreach ($bookImages as $image): ?>
-                    <img src="<?= e(bookCoverUrl($image['image_path'], $editBook['title'])) ?>" alt="Current book photo">
+                    <img src="<?= e(bookCoverUrl($image['image_path'], $editBook['title'])) ?>" alt="<?= e(t('current_book_photo')) ?>">
                     <?php endforeach; ?>
                 </div>
-                <span class="form-hint">Existing photos are kept. New photos are added up to 5 total.</span>
+                <span class="form-hint"><?= e(t('existing_photos_kept')) ?></span>
                 <?php endif; ?>
                 <label class="drop-zone" for="bookImagesInput">
-                    <span class="drop-zone__title">Drop images here or click to choose</span>
-                    <span class="drop-zone__hint">JPG, PNG, or WebP - max 3MB each - up to 5 images</span>
+                    <span class="drop-zone__title"><?= e(t('drop_images_choose')) ?></span>
+                    <span class="drop-zone__hint"><?= e(t('upload_hint')) ?></span>
                     <input id="bookImagesInput" type="file" name="book_images[]" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple>
                 </label>
                 <div class="image-preview-grid" data-image-preview></div>
             </div>
 
             <div class="form-row">
-                <button type="submit" class="btn btn--primary">
-                    <?= $editBook ? 'Save Changes' : 'List Book' ?>
-                </button>
-                <a href="<?= e(url(isAdmin() ? 'admin/books.php' : 'account.php')) ?>" class="btn btn--outline">Cancel</a>
+                <button type="submit" class="btn btn--primary"><?= e($editBook ? t('save_changes') : t('list_book')) ?></button>
+                <a href="<?= e(url(isAdmin() ? 'admin/books.php' : 'account.php')) ?>" class="btn btn--outline"><?= e(t('cancel')) ?></a>
             </div>
         </form>
 
-        <!-- Delete -->
         <?php if ($editBook): ?>
         <form method="post" class="delete-form">
             <?= csrfField() ?>
             <input type="hidden" name="action" value="delete">
             <input type="hidden" name="book_id" value="<?= (int)$editBook['id'] ?>">
-            <button
-                type="submit"
-                class="btn btn--danger"
-                data-confirm="Are you sure you want to delete this book listing? This action cannot be undone."
-            >
-                🗑️ Delete This Listing
+            <button type="submit" class="btn btn--danger" data-confirm="<?= e(t('confirm_delete_listing')) ?>">
+                <?= e(t('delete_listing')) ?>
             </button>
         </form>
         <?php endif; ?>

@@ -9,7 +9,7 @@ require_once __DIR__ . '/../includes/functions.php';
 
 requireLogin('login.php');
 
-$pageTitle = 'Checkout';
+$pageTitle = t('checkout');
 $userId = (int)currentUserId();
 $user = currentUser();
 $errors = [];
@@ -37,16 +37,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ];
 
     if ($formData['customer_name'] === '') {
-        $errors[] = 'Full name is required.';
+        $errors[] = t('error_full_name_required');
     }
     if ($formData['phone'] === '') {
-        $errors[] = 'Phone number is required.';
+        $errors[] = t('error_phone_required');
     }
     if ($formData['delivery_address'] === '') {
-        $errors[] = 'Delivery address is required.';
+        $errors[] = t('error_delivery_address_required');
     }
     if (empty($cartItems)) {
-        $errors[] = 'Your cart is empty.';
+        $errors[] = t('error_cart_empty');
     }
 
     if (empty($errors)) {
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $lockedItems = $stmt->fetchAll();
 
             if (empty($lockedItems)) {
-                throw new RuntimeException('Your cart is empty.');
+                throw new RuntimeException(t('error_cart_empty'));
             }
 
             $total = 0.0;
@@ -75,13 +75,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stock = (int)$item['stock'];
 
                 if (empty($item['is_active'])) {
-                    throw new RuntimeException($item['title'] . ' is no longer available.');
+                    throw new RuntimeException(sprintf(t('error_no_longer_available'), $item['title']));
                 }
                 if ($quantity < 1) {
-                    throw new RuntimeException('Invalid quantity for ' . $item['title'] . '.');
+                    throw new RuntimeException(sprintf(t('error_invalid_quantity_for'), $item['title']));
                 }
                 if ($quantity > $stock) {
-                    throw new RuntimeException($item['title'] . ' only has ' . $stock . ' in stock.');
+                    throw new RuntimeException(sprintf(t('error_only_stock'), $item['title'], $stock));
                 }
 
                 $total += $quantity * (float)$item['price'];
@@ -122,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $stockStmt->execute([$quantity, (int)$item['book_id'], $quantity]);
                 if ($stockStmt->rowCount() !== 1) {
-                    throw new RuntimeException('Stock changed while placing your order. Please review your cart.');
+                    throw new RuntimeException(t('error_stock_changed'));
                 }
             }
 
@@ -130,7 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $clearStmt->execute([$userId]);
 
             $pdo->commit();
-            flashSet('success', 'Order #' . $orderId . ' placed successfully. Payment method: Cash on Delivery.');
+            flashSet('success', sprintf(t('flash_order_placed'), $orderId));
             redirect('orders.php');
         } catch (Throwable $exception) {
             if ($pdo->inTransaction()) {
@@ -146,15 +146,15 @@ include __DIR__ . '/../includes/header.php';
 
 <div class="container">
     <div class="page-header">
-        <h1>Checkout</h1>
-        <p class="page-sub">Cash on Delivery is the only payment method for now.</p>
+        <h1><?= e(t('checkout')) ?></h1>
+        <p class="page-sub"><?= e(t('checkout_cod_only')) ?></p>
     </div>
 
     <?php if (empty($cartItems)): ?>
         <div class="empty-state">
-            <span class="empty-state__icon">Cart</span>
-            <p>Your cart is empty. Add a book before checkout.</p>
-            <a href="<?= e(url('books.php')) ?>" class="btn btn--primary">Browse Books</a>
+            <span class="empty-state__icon"><?= e(t('cart')) ?></span>
+            <p><?= e(t('cart_empty_checkout')) ?></p>
+            <a href="<?= e(url('books.php')) ?>" class="btn btn--primary"><?= e(t('browse_books')) ?></a>
         </div>
     <?php else: ?>
         <?php if ($errors): ?>
@@ -170,36 +170,36 @@ include __DIR__ . '/../includes/header.php';
                 <?= csrfField() ?>
 
                 <div class="form-group">
-                    <label class="form-label" for="customer_name">Full Name</label>
+                    <label class="form-label" for="customer_name"><?= e(t('full_name')) ?></label>
                     <input id="customer_name" name="customer_name" class="form-input" type="text" value="<?= e($formData['customer_name']) ?>" required>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="phone">Phone Number</label>
+                    <label class="form-label" for="phone"><?= e(t('phone_number')) ?></label>
                     <input id="phone" name="phone" class="form-input" type="tel" value="<?= e($formData['phone']) ?>" required>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="delivery_address">Delivery Address</label>
+                    <label class="form-label" for="delivery_address"><?= e(t('delivery_address')) ?></label>
                     <textarea id="delivery_address" name="delivery_address" class="form-input" rows="3" required><?= e($formData['delivery_address']) ?></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="notes">Notes</label>
+                    <label class="form-label" for="notes"><?= e(t('notes')) ?></label>
                     <textarea id="notes" name="notes" class="form-input" rows="2"><?= e($formData['notes']) ?></textarea>
-                    <span class="form-hint">Optional delivery notes.</span>
+                    <span class="form-hint"><?= e(t('optional_delivery_notes')) ?></span>
                 </div>
 
                 <div class="payment-method-box">
-                    <span>Payment Method</span>
-                    <strong>Cash on Delivery</strong>
+                    <span><?= e(t('payment_method')) ?></span>
+                    <strong><?= e(t('cash_on_delivery')) ?></strong>
                 </div>
 
-                <button type="submit" class="btn btn--primary btn--full">Place Order</button>
+                <button type="submit" class="btn btn--primary btn--full"><?= e(t('place_order')) ?></button>
             </form>
 
             <aside class="cart-summary card">
-                <h2 class="card__title">Order Summary</h2>
+                <h2 class="card__title"><?= e(t('order_summary')) ?></h2>
                 <?php foreach ($cartItems as $item): ?>
                     <?php
                     $quantity = min((int)$item['quantity'], (int)$item['stock']);
@@ -211,7 +211,7 @@ include __DIR__ . '/../includes/header.php';
                     </div>
                 <?php endforeach; ?>
                 <div class="summary-row summary-row--total">
-                    <span>Total</span>
+                    <span><?= e(t('total')) ?></span>
                     <strong><?= e(formatPrice($cartTotal)) ?></strong>
                 </div>
             </aside>

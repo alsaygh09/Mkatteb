@@ -9,7 +9,7 @@ require_once __DIR__ . '/../includes/functions.php';
 
 requireLogin('login.php');
 
-$pageTitle = 'My Orders';
+$pageTitle = t('my_orders');
 $pdo = db();
 
 $stmt = $pdo->prepare(
@@ -41,15 +41,15 @@ include __DIR__ . '/../includes/header.php';
 
 <div class="container">
     <div class="page-header">
-        <h1>My Orders</h1>
-        <p class="page-sub">Your order history.</p>
+        <h1><?= e(t('my_orders')) ?></h1>
+        <p class="page-sub"><?= e(t('your_order_history')) ?></p>
     </div>
 
     <?php if (empty($orders)): ?>
     <div class="empty-state">
-        <span class="empty-state__icon">Orders</span>
-        <p>You haven't placed any orders yet.</p>
-        <a href="<?= e(url('books.php')) ?>" class="btn btn--primary">Browse Books</a>
+        <span class="empty-state__icon"><?= e(t('orders')) ?></span>
+        <p><?= e(t('no_orders_placed')) ?></p>
+        <a href="<?= e(url('books.php')) ?>" class="btn btn--primary"><?= e(t('browse_books')) ?></a>
     </div>
     <?php else: ?>
         <div class="orders-list">
@@ -61,33 +61,33 @@ include __DIR__ . '/../includes/header.php';
                 <section class="card order-card">
                     <div class="order-card__head">
                         <div>
-                            <h2 class="card__title">Order #<?= (int)$ord['id'] ?></h2>
+                            <h2 class="card__title"><?= e(t('order_number')) ?><?= (int)$ord['id'] ?></h2>
                             <p class="text-muted"><?= date('d M Y H:i', strtotime($ord['created_at'])) ?></p>
                         </div>
-                        <span class="status status--<?= e($ord['status']) ?>"><?= e(ucfirst($ord['status'])) ?></span>
+                        <span class="status status--<?= e($ord['status']) ?>"><?= e(t($ord['status'])) ?></span>
                     </div>
 
                     <div class="order-meta-grid">
                         <div>
-                            <span class="text-muted">Total</span>
+                            <span class="text-muted"><?= e(t('total')) ?></span>
                             <strong><?= e(formatPrice($orderTotal)) ?></strong>
                         </div>
                         <div>
-                            <span class="text-muted">Payment</span>
-                            <strong><?= e($paymentMethod === 'cash_on_delivery' ? 'Cash on Delivery' : ucfirst($paymentMethod)) ?></strong>
+                            <span class="text-muted"><?= e(t('payment')) ?></span>
+                            <strong><?= e($paymentMethod === 'cash_on_delivery' ? t('cash_on_delivery') : ucfirst($paymentMethod)) ?></strong>
                         </div>
                     </div>
 
                     <div class="books-table-wrap">
                         <table class="books-table">
                             <thead>
-                                <tr><th>Item</th><th>Quantity</th><th>Unit Price</th><th>Total</th></tr>
+                                <tr><th><?= e(t('item')) ?></th><th><?= e(t('quantity')) ?></th><th><?= e(t('unit_price')) ?></th><th><?= e(t('total')) ?></th></tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($orderItems[(int)$ord['id']] ?? [] as $item): ?>
                                 <tr>
                                     <td>
-                                        <?= e($item['title'] ?? 'Deleted book') ?>
+                                        <?= e($item['title'] ?? t('deleted_book')) ?>
                                         <?php if (!empty($item['author'])): ?>
                                             <small><?= e($item['author']) ?></small>
                                         <?php endif; ?>

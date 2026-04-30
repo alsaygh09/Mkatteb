@@ -1327,6 +1327,35 @@ textarea.form-input { resize: vertical; min-height: 80px; }
 [dir="rtl"] .auth-card {
   text-align: right;
 }
+[dir="rtl"] .hero__content,
+[dir="rtl"] .section-header,
+[dir="rtl"] .cta-section__inner {
+  text-align: right;
+}
+[dir="rtl"] .hero__eyebrow {
+  letter-spacing: 0;
+}
+[dir="rtl"] .hero__sub,
+[dir="rtl"] .hero__search {
+  margin-left: auto;
+  margin-right: 0;
+}
+[dir="rtl"] .hero__actions {
+  justify-content: flex-start;
+}
+[dir="rtl"] .hero__search {
+  direction: rtl;
+}
+[dir="rtl"] .hero__search-input {
+  text-align: right;
+}
+[dir="rtl"] .stats-strip__inner,
+[dir="rtl"] .categories-grid {
+  direction: rtl;
+}
+[dir="rtl"] .category-chip {
+  text-align: center;
+}
 
 /* ---------------------------------------------------------------
    27. UTILITIES
