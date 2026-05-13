@@ -158,15 +158,3 @@ The password is stored as a `password_hash()` compatible hash, not plain text.
    ```powershell
    Get-ChildItem -Recurse -Filter *.php | ForEach-Object { C:\Projects\PHPtrail\php\php.exe -l $_.FullName }
    ```
-
-## Screenshots
-
-Add screenshots here later.
-
-```text
-public/assets/screenshots/homepage.png
-public/assets/screenshots/books-filters.png
-public/assets/screenshots/book-details.png
-public/assets/screenshots/cart.png
-public/assets/screenshots/admin-dashboard.png
-```
